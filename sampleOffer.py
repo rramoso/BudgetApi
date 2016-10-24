@@ -35,17 +35,16 @@ for city in cities:
 						elif hotel_offer_prices != hotel_prices:
 
 							print "Diferentes(?)",hotel_offer_prices,hotel_prices,hotel_offer_start,end_day
-							# createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices)
+							print createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices)
 							hotel_offer_start = end_day
 							hotel_offer_prices = hotel_prices
 						else:
 							print "iguales: ",hotel_offer_prices,hotel_prices,hotel_offer_start,end_day
-							
+					
+					start_date = end_day
+					days_up_front += 2
 				except Exception as e:
-					print e 
+					print e
 					break
 				
-				start_date = end_day
-				days_up_front += 2
-			break
 			days_up_front = 2

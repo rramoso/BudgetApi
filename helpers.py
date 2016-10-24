@@ -74,7 +74,12 @@ def checkTransportation():
 
 def createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices):
 	
-	offer = Tbloffer.objects.create(
+	offer = Tbloffer.objects.filter(offerid=hotel.hotelid+"_"+hotel_offer_start+"_"+end_day)
+	if len(offer) > 0:
+		return offer[0]
+	
+
+	new_offer = Tbloffer.objects.create(
 		offerid = hotel.hotelid+"_"+hotel_offer_start+"_"+end_day,
 		hotelid = hotel.hotelid,
 		hotelname = hotel.hotelname,
@@ -84,7 +89,8 @@ def createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices):
 		startdate = datetime(2015, 6, 15, 23, 30, 1, tzinfo=timezone.utc),
 		enddate = datetime(2015, 6, 15, 23, 30, 1, tzinfo=timezone.utc))
 	
-	offer.save()
+	new_offer.save()
+	return new_offer
 
 def createOfferByHotelPrice(offers):
 	price_hotel = []
