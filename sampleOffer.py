@@ -17,7 +17,7 @@ for city in cities:
 			hotel_offer_start = ''
 			days_up_front = 2
 			start_date = TODAY
-
+			last_its_same = False 
 			while days_up_front <= DAYS_LIMIT:
 				print start_date
 				end_day = datetime.datetime.now() + datetime.timedelta(days=days_up_front)
@@ -38,13 +38,15 @@ for city in cities:
 							print createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices)
 							hotel_offer_start = end_day
 							hotel_offer_prices = hotel_prices
+							last_its_same = False
 						else:
-							print "iguales: ",hotel_offer_prices,hotel_prices,hotel_offer_start,end_day
-					
+							print DAYS_LIMIT-days_up_front, "iguales: ",hotel_offer_prices,hotel_prices,hotel_offer_start,end_day
+							last_its_same = True
 					start_date = end_day
 					days_up_front += 2
 				except Exception as e:
 					print e
 					break
-				
+			if last_its_same:
+				createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices)
 			days_up_front = 2

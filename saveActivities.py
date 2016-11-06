@@ -8,8 +8,8 @@ import sys, django, requests, json, datetime
 
 EXPEDIA = "http://terminal2.expedia.com/x/activities/search?location={}&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 EXPEDIA_ACT = "http://terminal2.expedia.com:80/x/activities/details?activityId={}&startDate={}&endDate={}&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
-
-cities = {"PUJ":"DOM","STI":"DOM","SDQ":"DOM","SFO":"USA"}
+# PUJ":"DOM","STI":"DOM",,"SFO":"USA"
+cities = {"SDQ":"DOM"}
 activitiesIDs = []
 for city in cities: 
 	r = requests.get(EXPEDIA.format(city))
@@ -38,17 +38,20 @@ for actId in activitiesIDs:
 	latLng = content["latLng"].split(',')
 
 	try:
-		location = checkAPILocation(latLng[0],latLng[1],content['address'],cities[city],city)
+		city = "Santo Domingo"
+		location = checkAPILocation(latLng[0],latLng[1],content['address'],cities['SDQ'],city)
+		print city
 	except:
 		print actId
 		# print content
 		continue
 	act = Tblactivity.objects.create(
 			activityid = actId,
+			actype = str(content['category']),
 			acname = content["title"],
 			acdescription = content["description"] if content["description"] is not None else "No disponible",
 			acdate = content["startDate"],
-			acbegintime = "mixed",
+			acbegintime = content['duration'],
 			accost = str(prices_by_date),
 			aclocation = location)
 	act.save()

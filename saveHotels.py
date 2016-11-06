@@ -42,7 +42,6 @@ for hId in hotelList:
 	if len(Tblhotel.objects.filter(hotelid = hId)) > 0:
 		print hId
 		continue
-		
 	hotel_location = checkAPILocation(content['latitude'],content['longitude'],content['hotelAddress'],content['hotelCountry'],content['hotelCity'])#lat,log,address,country,city
 	h = Tblhotel.objects.create( 
 		hotelid = content['hotelId'],

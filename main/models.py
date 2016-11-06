@@ -40,7 +40,7 @@ class Tblactivity(models.Model):
     acendtime = models.TextField(db_column='acEndTime', blank=True, null=True)  # Field name made lowercase.
     acstatus = models.TextField(db_column='acStatus', blank=True, null=True)  # Field name made lowercase.
     acdate = models.DateField(db_column='acDate', blank=True, null=True)  # Field name made lowercase.
-    acrating = models.TextField(db_column='acRating')  # Field name made lowercase.
+    acrating = models.TextField(db_column='acRating',null=True)  # Field name made lowercase.
     aclocation = models.ForeignKey('Tbllocation', models.DO_NOTHING, db_column='aclocation', blank=True, null=True)  # Field name made lowercase.
     
     class Meta:
@@ -231,8 +231,8 @@ class Tblrestaurant(models.Model):
     rtphonenumber = models.TextField(db_column='rtPhoneNumber', blank=True, null=True)  # Field name made lowercase.
     rtaddress = models.ForeignKey(Tbllocation, models.DO_NOTHING, db_column='rtAddress', blank=True, null=True)  # Field name made lowercase.
     rtcity = models.ForeignKey(Tblcity, models.DO_NOTHING, db_column='rtCity')  # Field name made lowercase.
-    rtcuisine = models.TextField(db_column='rtCuisine')  # Field name made lowercase.
-    rtrating = models.TextField(db_column='rtRating')  # Field name made lowercase.
+    rtcuisine = models.TextField(db_column='rtCuisine',null=True)  # Field name made lowercase.
+    rtrating = models.TextField(db_column='rtRating',null=True)  # Field name made lowercase.
     rtcountry = models.ForeignKey(Tblcountry, models.DO_NOTHING, db_column='rtCountry')  # Field name made lowercase.
     cuisineid = models.ForeignKey(Tblcuisine, models.DO_NOTHING, db_column='cuisineID', blank=True, null=True)  # Field name made lowercase.
 

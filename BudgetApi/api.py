@@ -1,47 +1,34 @@
-# from tastypie.resources import ModelResource
-# from tastypie.authorization import Authorization
-# from tastypie.constants import ALL
-# import time
-# from tastypie import fields
-# from hello.models import *
+from tastypie.resources import ModelResource,Resource
+from tastypie.authorization import Authorization
+from tastypie.constants import ALL
+import time
+from tastypie import fields
+from main.models import *
+from helpers import *
+import urllib3
 
-
-# class WhateverResource(ModelResource):
+class OfferResource(ModelResource):
      
-#     # acdescription = fields.CharField()
-#     class Meta:
-#     	queryset = Tblrestaurant.objects.all()
-#         resource_name = 'whatever'
-#         limit = 0
-#         authorization= Authorization()
-#         list_allowed_methods = ['post','get']
+    # acdescription = fields.CharField()
+	class Meta:
+		queryset = Tblcity.objects.filter(cityname = 'Santo Domingo')
+		resource_name = 'offer'
+		limit = 0
+		authorization= Authorization()
+		list_allowed_methods = ['get']
 
 
-#     def hydrate(self,bundle):
-#     	city = bundle.data['city']
-#     	restaurant_name = bundle.data['restaurant_name']
-#     	locationid = bundle.data['location']
-#     	saved_city = Tblcity.objects.get(cityname = city)
-#     	location = Tbllocation.objects.get(locationid=locationid)
+	def dehydrate(self,bundle):
 
-#     	resta = Tblrestaurant.objects.create(
-#     		restaurantname=restaurant_name,
-#     		rtphonenumber="",
-#     		rtaddress=location,
-#     		rtcity=saved_city,
-#     		rtcuisine="",
-#     		rtrating="",
-#     		rtcountry=saved_city.countryid,
-#     		cuisineid=None)
-#     	resta.save()
-#     	return bundle
-#     	# response = requests.post(url, data=data_json, headers=headers)
-# #     	restaurantid
-# # restaurantname
-# # rtphonenumber
-# # rtaddress
-# # rtcity
-# # rtcuisine
-# # rtrating
-# # rtcountry
-# # cuisineid
+		begintime = str(bundle.request.GET['begintime'])
+		endtime = str(bundle.request.GET['endtime'])
+		budget = int(bundle.request.GET['limit'])
+		cityname = bundle.request.GET['city']
+		preferences = re.split('[\[,\,,\',\]]',bundle.request.GET['preferences'])
+		while '' in preferences: preferences.remove('')
+
+		# datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S")
+		# datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S")
+		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,Tblcity.objects.get(cityname = 'Santo Domingo'),preferences)
+
+		return result
