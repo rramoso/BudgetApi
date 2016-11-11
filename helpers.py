@@ -1,17 +1,16 @@
 from requests.auth import HTTPDigestAuth
 from django.conf import settings
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime,timedelta
 import dateutil.parser, ast
-import urllib3,os, django, requests, json, datetime,re, calendar
+import os, django, requests, json, datetime,re, calendar
 os.environ['DJANGO_SETTINGS_MODULE'] = 'BudgetApi.settings'
 django.setup()
 from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyBQ1HrMPB8GipRSP7VteAWWgGR1mM2lf1k"
-urllib3.disable_warnings()
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyAGKt0w_4baTtXOgSzAHV3IgLwGgarC8tU"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
@@ -87,9 +86,7 @@ def intPrices(budget,hotelexpense,days):
 	return prices
 
 def createOffersToUser(begin_time,end_time, budget, city,preferences):
-	urllib3.disable_warnings()
 		
-	print begin_time,end_time
 	hotel_money_limit = budget*0.5
 	activities_money = budget*0.125
 	restaurant_money = budget*0.25	 
@@ -100,7 +97,7 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	
 	hotel_offers = Tbloffer.objects.filter(startdate__gte = begin_time,enddate__lte = end_time, hotelcity = city.cityname)
 	number_of_days = (begin_time - end_time).days * -1
-
+	
 	#Get activities by preferences
 	for preference in preferences:
 		selectedActivities += Tblactivity.objects.filter(aclocation__lcity = city,actype = preference)
@@ -110,31 +107,69 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 		prices = intPrices(hotel_money_limit,offer.hotelexpense,number_of_days)
 		if prices != []:
 			selectedOffers.append(offer)
-	
-	#Asigning activities to hotel by arrival time
+
+	#Filter activities by price limit	
+	selectedActivities = activitiesByPrice(selectedActivities,activities_money,{"Adult":1})
+
+	# Asigning activities to hotel by arrival time
 	for offer in selectedOffers:
 		hotelsActivity[offer.offerid] = activitiesByHotel(offer.hotelid,selectedActivities)
-	return hotelsActivity
+	
 	#Creating itinerary
-	# createItinerary(hotelsActivity,begin_time,end_time)
+	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days)
+	return offersItinerary
 	
 def createItinerary(hotelsActivity,begin_time,end_time,days):
 
-	itinerary = {}
+	
 	regular_activity_start_hour,regular_activity_end_hour = 8,20
-	itinerary[begin_time.hour],itinerary[end_time.hour] = 'Hotel Arrival', 'End of Offer'
-	while days > 0:
+	
+	google_places = []
+	result = {}
+	for offer in hotelsActivity:
+		itinerary = {}
+		itinerary[begin_time.strftime("%Y-%m-%d %H:%M:%S")],itinerary[end_time.strftime("%Y-%m-%d %H:%M:%S")] = 'Hotel Arrival', 'End of Offer'
+		for activityid in hotelsActivity[offer]:
 
-		for offer in hotelsActivity:
-			print offer
-			for activityid in hotelsActivity[offer]:
+			act = Tblactivity.objects.get(activityid = activityid)
+			if act.accost != None:
+				dates = ast.literal_eval(act.accost).keys()
+				for date in dates:
 
-				act = Tblactivity.objects.get(activityid = activityid)
-				if act.accost != None:
-					for date in act.accost:
-						if date > begin_time:
-							print date
-		days -= 1
+					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
+					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
+						duration = int(act.acbegintime.split('h')[0])
+						if date+timedelta(hours=duration) < end_time:
+							for hour in range(duration):
+								itinerary[(date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S")] = act.acname
+						break
+			else:
+				google_places.append(act)
+		result[offer] = itinerary
+	
+	for place in google_places:
+		pass
+
+	return result
+
+def activitiesByPrice(selectedActivities,price_limit,people):
+	
+	activitiesSelected = []
+	for act in selectedActivities:
+		try:
+			activities = ast.literal_eval(act.accost)
+			for costs in activities.values():
+				for cost in costs.split(','):
+					for c in costs.split(','):
+						i = c.split('$')
+						for key in people.keys():
+							print act.acname,key,int(i[1]),price_limit,people[key]*int(i[1]) <= price_limit
+							if key in i[0] and people[key]*int(i[1]) <= price_limit:
+								activitiesSelected.append(act) 
+		except Exception as e:
+			print e		
+	return activitiesSelected	
+
 
 def activitiesByHotel(hotelid,activities):
 
@@ -146,9 +181,11 @@ def activitiesByHotel(hotelid,activities):
 	for act in activities:
 		destination = str(act.aclocation.latitude)+','+str(act.aclocation.longitud)
 		r = requests.get(DISTANCE_BY_LATLNG.format(origin,destination,'driving'))
+		print json.loads(r.content)
 		try: 
 			arrival_time = json.loads(r.content)['rows'][0]['elements'][0]['duration']['text']
-		except:
+		except Exception as e:
+			print e
 			pass
 		if 'hour' not in arrival_time:
 			result[act.activityid] = arrival_time

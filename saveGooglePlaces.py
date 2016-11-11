@@ -9,9 +9,9 @@ PLACES = [u'ChIJs8KAr1fPsY4R9udw5J41EsM', u'ChIJSVTkklvPsY4ROZu7UUyEJW8', u'ChIJ
 GOOGLE_PLACES_API = "https://maps.googleapis.com/maps/api/place/radarsearch/json?location={}&radius={}&type={}&key=AIzaSyD8JvOzhifBcvqd88M1JYy_YNg53s-mDNs"
 GOOGLE_PLACES_DETAIL = "https://maps.googleapis.com/maps/api/place/details/json?placeid={}&key=AIzaSyD8JvOzhifBcvqd88M1JYy_YNg53s-mDNs"
 # "PUJ":"18.58182,-68.40431",
-# "
-cities = {"SDQ":"18.50012,-69.98857"}
-preferences = ['theater','art_gallery','stadium','bar']
+# {"STI":"19.467,-70.700"}
+cities = {"SDQ":"18.46984,-69.950345"}
+preferences = ['theater','art_gallery','stadium','museum','restaurant']
 places_ids = []
 for preference in preferences:
 	n=1
@@ -30,7 +30,6 @@ for preference in preferences:
 			print e
 			continue
 
-print "wtf",places_ids
 for placeid in reversed(places_ids):
 	r = requests.get(GOOGLE_PLACES_DETAIL.format(placeid))
 	try:
