@@ -26,7 +26,6 @@ class OfferResource(ModelResource):
 		city = bundle.request.GET['city']
 		preferences = re.split('[\[,\,,\',\]]',bundle.request.GET['preferences'])
 		while '' in preferences: preferences.remove('')
-		print city
 		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,Tblcity.objects.get(cityname = city),preferences)
 
 		return result

@@ -4,9 +4,10 @@ import sys, django, requests, json, datetime
 DAYS_LIMIT = 15
 HOTEL_OFFER = "http://terminal2.expedia.com/x/mhotels/offers?hotelId={}&checkInDate={}&checkOutDate={}&room1=2&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
+Tbloffer.objects.filter(start_date__lt=TODAY).delete()
 print "today", datetime.datetime.now()
 
-cities = {"Punta Cana":"DOM","Santiago":"DOM","Santo Domingo":"DOM","San Francisco":"USA"}
+cities = {"Santo Domingo":"DOM","Santiago De Los Caballeros":"DOM","Punta Cana":"DOM"}
 
 
 for city in cities:

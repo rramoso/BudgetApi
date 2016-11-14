@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import datetime,timedelta
 import dateutil.parser, ast
-import os, django, requests, json, datetime,re, calendar
+import os, django, requests, json,datetime,re, calendar
 os.environ['DJANGO_SETTINGS_MODULE'] = 'BudgetApi.settings'
 django.setup()
 from main.models import *
@@ -110,12 +110,12 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 
 	#Filter activities by price limit	
 	selectedActivities = activitiesByPrice(selectedActivities,activities_money,{"Adult":1})
-
-	# Asigning activities to hotel by arrival time
+	
+	# # Asigning activities to hotel by arrival time
 	for offer in selectedOffers:
 		hotelsActivity[offer.offerid] = activitiesByHotel(offer.hotelid,selectedActivities)
 	
-	#Creating itinerary
+	# #Creating itinerary
 	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days)
 	return offersItinerary
 	
@@ -123,6 +123,7 @@ def createItinerary(hotelsActivity,begin_time,end_time,days):
 
 	
 	regular_activity_start_hour,regular_activity_end_hour = 8,20
+	print hotelsActivity
 	
 	google_places = []
 	result = {}
@@ -132,6 +133,7 @@ def createItinerary(hotelsActivity,begin_time,end_time,days):
 		for activityid in hotelsActivity[offer]:
 
 			act = Tblactivity.objects.get(activityid = activityid)
+			print act.acname,act.accost
 			if act.accost != None:
 				dates = ast.literal_eval(act.accost).keys()
 				for date in dates:
@@ -139,6 +141,7 @@ def createItinerary(hotelsActivity,begin_time,end_time,days):
 					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
 					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
 						duration = int(act.acbegintime.split('h')[0])
+						print '\tduration:',duration
 						if date+timedelta(hours=duration) < end_time:
 							for hour in range(duration):
 								itinerary[(date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S")] = act.acname
@@ -181,7 +184,7 @@ def activitiesByHotel(hotelid,activities):
 	for act in activities:
 		destination = str(act.aclocation.latitude)+','+str(act.aclocation.longitud)
 		r = requests.get(DISTANCE_BY_LATLNG.format(origin,destination,'driving'))
-		print json.loads(r.content)
+
 		try: 
 			arrival_time = json.loads(r.content)['rows'][0]['elements'][0]['duration']['text']
 		except Exception as e:

@@ -8,8 +8,13 @@ import sys, django, requests, json, datetime
 
 EXPEDIA = "http://terminal2.expedia.com/x/activities/search?location={}&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 EXPEDIA_ACT = "http://terminal2.expedia.com:80/x/activities/details?activityId={}&startDate={}&endDate={}&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
-# PUJ":"DOM","STI":"DOM",,"SFO":"USA"
-cities = {"SDQ":"DOM"}
+# "PUJ":"DOM","STI":"DOM","SDQ":"DOM","SFO":"USA"
+startDate = datetime.datetime.now().strftime("%Y-%m-%d")
+Tblactivity.objects.filter(acdate__lt=startDate).delete()
+endDate = datetime.datetime.now() + datetime.timedelta(days=7)
+endDate = endDate.strftime("%Y-%m-%d")
+
+cities = {"Punta Cana":"DOM"}#"Santo Domingo":"DOM", "Santiago de los Caballeros":"DOM","Punta Cana":"DOM"}
 activitiesIDs = []
 for city in cities: 
 	r = requests.get(EXPEDIA.format(city))
@@ -20,38 +25,37 @@ for city in cities:
 	for activity in content["activities"]:
 		activitiesIDs.append(activity['id'])
 
-startDate = datetime.datetime.now().strftime("%Y-%m-%d")
-endDate = datetime.datetime.now() + datetime.timedelta(days=7)
-endDate = endDate.strftime("%Y-%m-%d")
 for actId in activitiesIDs:
 
 	r = requests.get(EXPEDIA_ACT.format(actId,startDate,endDate))
 	try:
 		content = json.loads(r.content)
+
 	except Exception as e:
 		activitiesIDs.append(actId)
 		continue
 	if len(Tblactivity.objects.filter(activityid = actId)) > 0:
-			print Tblactivity.objects.filter(activityid = actId)
+			print Tblactivity.objects.get(activityid = actId).actype,actId
 			continue
 	prices_by_date = expediaActivityOffers(content['offersDetail'])
 	latLng = content["latLng"].split(',')
 
 	try:
-		city = "Santo Domingo"
-		location = checkAPILocation(latLng[0],latLng[1],content['address'],cities['SDQ'],city)
-		print city
-	except:
-		print actId
-		# print content
+		location = checkAPILocation(latLng[0],latLng[1],content['address'],"DOM","Punta Cana")
+		print location.lcity.cityname
+	except Exception as e:
 		continue
+	try: 
+		duration = content['duration']
+	except:
+		duration = UNAVAILABLE
 	act = Tblactivity.objects.create(
 			activityid = actId,
 			actype = str(content['category']),
 			acname = content["title"],
 			acdescription = content["description"] if content["description"] is not None else "No disponible",
 			acdate = content["startDate"],
-			acbegintime = content['duration'],
+			acbegintime = duration,
 			accost = str(prices_by_date),
 			aclocation = location)
 	act.save()
