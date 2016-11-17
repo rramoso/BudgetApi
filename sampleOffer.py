@@ -4,7 +4,7 @@ import sys, django, requests, json, datetime
 DAYS_LIMIT = 15
 HOTEL_OFFER = "http://terminal2.expedia.com/x/mhotels/offers?hotelId={}&checkInDate={}&checkOutDate={}&room1=2&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
-Tbloffer.objects.filter(start_date__lt=TODAY).delete()
+Tbloffer.objects.filter(startdate__lt=TODAY).delete()
 print "today", datetime.datetime.now()
 
 cities = {"Santo Domingo":"DOM","Santiago De Los Caballeros":"DOM","Punta Cana":"DOM"}
@@ -14,7 +14,7 @@ for city in cities:
 		
 		for hotel in hotelsByCity(city):
 			print hotel.hotelname.encode('utf-8')
-			hotel_offer_prices = []
+			hotel_offer_prices = {}
 			hotel_offer_start = ''
 			days_up_front = 2
 			start_date = TODAY
@@ -41,7 +41,6 @@ for city in cities:
 							hotel_offer_prices = hotel_prices
 							last_its_same = False
 						else:
-							print DAYS_LIMIT-days_up_front, "iguales: ",hotel_offer_prices,hotel_prices,hotel_offer_start,end_day
 							last_its_same = True
 					start_date = end_day
 					days_up_front += 2

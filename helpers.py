@@ -10,7 +10,7 @@ from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyAGKt0w_4baTtXOgSzAHV3IgLwGgarC8tU"
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyBtj4q8RrfxwVZoQQ1iBeaJ4U7XBrEWkEk"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
@@ -74,12 +74,12 @@ def checkAirplane():
 
 def intPrices(budget,hotelexpense,days):
 
-	prices = []
+	prices = {}
 	
-	for price in re.split('[\[,\,,\]]',hotelexpense):
+	for price in ast.literal_eval(hotelexpense).keys():
 		try:
 			if int(price)*days <= budget:
-				prices.append(price)
+				prices[int(price)] = hotelexpense[price]
 				continue
 		except:
 			continue
@@ -95,7 +95,7 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	selectedActivities = []
 	hotelsActivity = {}
 	
-	hotel_offers = Tbloffer.objects.filter(startdate__gte = begin_time,enddate__lte = end_time, hotelcity = city.cityname)
+	hotel_offers = Tbloffer.objects.filter(startdate__lte = begin_time,enddate__gte = end_time, hotelcity = city.cityname)
 	number_of_days = (begin_time - end_time).days * -1
 	
 	#Get activities by preferences
@@ -105,9 +105,9 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	#Get hotels by price limit
 	for offer in hotel_offers:
 		prices = intPrices(hotel_money_limit,offer.hotelexpense,number_of_days)
-		if prices != []:
+		if prices != {}:
 			selectedOffers.append(offer)
-
+	print selectedOffers
 	#Filter activities by price limit	
 	selectedActivities = activitiesByPrice(selectedActivities,activities_money,{"Adult":1})
 	
@@ -117,6 +117,7 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	
 	# #Creating itinerary
 	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days)
+	print 'offersItinerary\n\t',offersItinerary
 	return offersItinerary
 	
 def createItinerary(hotelsActivity,begin_time,end_time,days):
@@ -140,7 +141,8 @@ def createItinerary(hotelsActivity,begin_time,end_time,days):
 
 					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
 					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
-						duration = int(act.acbegintime.split('h')[0])
+						duration = 'AAAAHHHH',act.acbegintime.split('h')
+						duration = int(act.acbegintime.split('h')[0]) if 'm' not in act.acbegintime.split('h')[0] else 1
 						print '\tduration:',duration
 						if date+timedelta(hours=duration) < end_time:
 							for hour in range(duration):
@@ -177,21 +179,22 @@ def activitiesByPrice(selectedActivities,price_limit,people):
 def activitiesByHotel(hotelid,activities):
 
 	result = {}
-
+	print 'Desde activitiesByHotel this is ... ', hotelid
 	offer_location = Tblhotel.objects.get(hotelid = hotelid).hoteladdress
 	origin = str(offer_location.latitude)+','+str(offer_location.longitud)
 		
 	for act in activities:
 		destination = str(act.aclocation.latitude)+','+str(act.aclocation.longitud)
 		r = requests.get(DISTANCE_BY_LATLNG.format(origin,destination,'driving'))
-
-		try: 
-			arrival_time = json.loads(r.content)['rows'][0]['elements'][0]['duration']['text']
-		except Exception as e:
-			print e
-			pass
-		if 'hour' not in arrival_time:
-			result[act.activityid] = arrival_time
+		print 'UGH',json.loads(r.content)
+		if json.loads(r.content)['rows'][0]['elements'][0]['status'] == 'OK':
+			try: 
+				arrival_time = json.loads(r.content)['rows'][0]['elements'][0]['duration']['text']
+			except Exception as e:
+				print e
+				pass 
+			if 'hour' not in arrival_time:
+				result[act.activityid] = arrival_time
 	return result
 
 def createOfferByActivities(activities):
@@ -234,16 +237,16 @@ def createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices):
 		hotelcountry= hotel.hotelcountry.countryname,
 		hotelcity = hotel.hotelcity.cityname,
 		hotelexpense = str(hotel_offer_prices),
-		startdate = datetime(int(startdate[0]), int(startdate[1]), int(startdate[2]), 23, 30, 1, tzinfo=timezone.utc),
-		enddate = datetime(int(endday[0]), int(endday[1]), int(endday[2]), 23, 30, 1, tzinfo=timezone.utc))
+		startdate = datetime.datetime(int(startdate[0]), int(startdate[1]), int(startdate[2]), 23, 30, 1, tzinfo=timezone.utc),
+		enddate = datetime.datetime(int(endday[0]), int(endday[1]), int(endday[2]), 23, 30, 1, tzinfo=timezone.utc))
 	
 	new_offer.save()
 	return new_offer
 
 def createOfferByHotelPrice(offers):
-	price_hotel = []
+	price_hotel = {}
 	for offer in offers:
-		price_hotel.append(int(offer['rateInfo']['chargeableRateInfo']['priceToShowUsers']))
+		price_hotel[int(offer['rateInfo']['chargeableRateInfo']['priceToShowUsers'])] = offer['roomLongDescription']
 	return price_hotel
 
 def expediaActivityOffers(offers):
