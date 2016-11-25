@@ -75,17 +75,20 @@ def checkAirplane():
 def intPrices(budget,hotelexpense,days):
 
 	prices = {}
-	
 	for price in ast.literal_eval(hotelexpense).keys():
 		try:
 			if int(price)*days <= budget:
-				prices[int(price)] = hotelexpense[price]
-				continue
+				prices[int(price*days)] = ast.literal_eval(hotelexpense)[price]
 		except:
 			continue
-	return prices
+	try:
+		return {min(prices): prices[min(prices)]}
+	except Exception as e:
+		print e
+		return {}
+	
 
-def createOffersToUser(begin_time,end_time, budget, city,preferences):
+def createOffersToUser(begin_time,end_time, budget, city, preferences,people):
 		
 	hotel_money_limit = budget*0.5
 	activities_money = budget*0.125
@@ -94,6 +97,7 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	selectedOffers = []
 	selectedActivities = []
 	hotelsActivity = {}
+	result = {}
 	
 	hotel_offers = Tbloffer.objects.filter(startdate__lte = begin_time,enddate__gte = end_time, hotelcity = city.cityname)
 	number_of_days = (begin_time - end_time).days * -1
@@ -104,54 +108,65 @@ def createOffersToUser(begin_time,end_time, budget, city,preferences):
 	
 	#Get hotels by price limit
 	for offer in hotel_offers:
-		prices = intPrices(hotel_money_limit,offer.hotelexpense,number_of_days)
+		prices = intPrices(hotel_money_limit,offer.hotelexpense,number_of_days) 
+
 		if prices != {}:
 			selectedOffers.append(offer)
-	print selectedOffers
+	
 	#Filter activities by price limit	
-	selectedActivities = activitiesByPrice(selectedActivities,activities_money,{"Adult":1})
+	selectedActivities = activitiesByPrice(selectedActivities,activities_money,people)
 	
 	# # Asigning activities to hotel by arrival time
 	for offer in selectedOffers:
 		hotelsActivity[offer.offerid] = activitiesByHotel(offer.hotelid,selectedActivities)
-	
+
 	# #Creating itinerary
-	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days)
-	print 'offersItinerary\n\t',offersItinerary
+	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days,people)
+	for offer in selectedOffers:
+		offersItinerary[offer.offerid]['hotelExpense'] = {int(min(ast.literal_eval(offer.hotelexpense)))*number_of_days:ast.literal_eval(offer.hotelexpense)[min(ast.literal_eval(offer.hotelexpense))]}
+	
 	return offersItinerary
 	
-def createItinerary(hotelsActivity,begin_time,end_time,days):
+def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 
-	
-	regular_activity_start_hour,regular_activity_end_hour = 8,20
-	print hotelsActivity
-	
+
 	google_places = []
 	result = {}
+	
+
 	for offer in hotelsActivity:
+		activityTotal = 0
 		itinerary = {}
 		itinerary[begin_time.strftime("%Y-%m-%d %H:%M:%S")],itinerary[end_time.strftime("%Y-%m-%d %H:%M:%S")] = 'Hotel Arrival', 'End of Offer'
+		offerObject = Tbloffer.objects.get(offerid = offer)
 		for activityid in hotelsActivity[offer]:
 
 			act = Tblactivity.objects.get(activityid = activityid)
-			print act.acname,act.accost
+			
 			if act.accost != None:
 				dates = ast.literal_eval(act.accost).keys()
-				for date in dates:
 
+				for date in dates:
+					d = date
 					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
 					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
-						duration = 'AAAAHHHH',act.acbegintime.split('h')
 						duration = int(act.acbegintime.split('h')[0]) if 'm' not in act.acbegintime.split('h')[0] else 1
-						print '\tduration:',duration
+						
 						if date+timedelta(hours=duration) < end_time:
+							for c in ast.literal_eval(act.accost)[d].split(','):
+								i = c.split('$')
+								for key in people.keys():
+									if key in i[0]:
+										activityTotal += int(i[1])
 							for hour in range(duration):
 								itinerary[(date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S")] = act.acname
 						break
+
 			else:
 				google_places.append(act)
-		result[offer] = itinerary
-	
+
+		result[offer] = {'itinerary':itinerary,'activityTotal':activityTotal,'hotel':offerObject.hotelname}
+		
 	for place in google_places:
 		pass
 
@@ -160,6 +175,7 @@ def createItinerary(hotelsActivity,begin_time,end_time,days):
 def activitiesByPrice(selectedActivities,price_limit,people):
 	
 	activitiesSelected = []
+
 	for act in selectedActivities:
 		try:
 			activities = ast.literal_eval(act.accost)
@@ -168,25 +184,24 @@ def activitiesByPrice(selectedActivities,price_limit,people):
 					for c in costs.split(','):
 						i = c.split('$')
 						for key in people.keys():
-							print act.acname,key,int(i[1]),price_limit,people[key]*int(i[1]) <= price_limit
+							print '#',act.acname,key,int(i[1]),price_limit,people[key]*int(i[1]) <= price_limit
 							if key in i[0] and people[key]*int(i[1]) <= price_limit:
-								activitiesSelected.append(act) 
+								activitiesSelected.append(act)
+								
 		except Exception as e:
-			print e		
-	return activitiesSelected	
+			pass	
+	return activitiesSelected
 
 
 def activitiesByHotel(hotelid,activities):
 
 	result = {}
-	print 'Desde activitiesByHotel this is ... ', hotelid
 	offer_location = Tblhotel.objects.get(hotelid = hotelid).hoteladdress
 	origin = str(offer_location.latitude)+','+str(offer_location.longitud)
 		
 	for act in activities:
 		destination = str(act.aclocation.latitude)+','+str(act.aclocation.longitud)
 		r = requests.get(DISTANCE_BY_LATLNG.format(origin,destination,'driving'))
-		print 'UGH',json.loads(r.content)
 		if json.loads(r.content)['rows'][0]['elements'][0]['status'] == 'OK':
 			try: 
 				arrival_time = json.loads(r.content)['rows'][0]['elements'][0]['duration']['text']
@@ -229,7 +244,6 @@ def createOfferByHotel(hotel,hotel_offer_start,end_day,hotel_offer_prices):
 		return offer[0]
 	endday = end_day.split('-')
 	startdate = hotel_offer_start.split('-')
-	print "\t\t\t",endday,startdate
 	new_offer = Tbloffer.objects.create(
 		offerid = hotel.hotelid+"_"+hotel_offer_start+"_"+end_day,
 		hotelid = hotel.hotelid,

@@ -9,7 +9,7 @@ import urllib3
 
 class OfferResource(ModelResource):
      
-    # acdescription = fields.CharField()
+
 	class Meta:
 		queryset = Tblcity.objects.filter(cityname = 'Santo Domingo')
 		resource_name = 'offer'
@@ -26,6 +26,23 @@ class OfferResource(ModelResource):
 		city = bundle.request.GET['city']
 		preferences = re.split('[\[,\,,\',\]]',bundle.request.GET['preferences'])
 		while '' in preferences: preferences.remove('')
-		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,Tblcity.objects.get(cityname = city),preferences)
+		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,Tblcity.objects.get(cityname = city),preferences,{"Adult":1})
 
 		return result
+
+class DetailOfferResource(ModelResource):
+
+	class Meta:
+		queryset = Tblcity.objects.filter(cityname = 'Santo Domingo')
+		resource_name = 'detailoffer'
+		limit = 0
+		authorization= Authorization()
+		list_allowed_methods = ['get']
+
+	def dehydrate(self,bundle):
+
+		offerid = str(bundle.request.GET['offerid'])
+		
+		return 'ok'
+
+
