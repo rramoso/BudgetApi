@@ -14,7 +14,7 @@ Tblactivity.objects.filter(acdate__lt=startDate).delete()
 endDate = datetime.datetime.now() + datetime.timedelta(days=7)
 endDate = endDate.strftime("%Y-%m-%d")
 
-cities = {"Santo Domingo":"DOM"}#"Santo Domingo":"DOM", "Santiago de los Caballeros":"DOM","Punta Cana":"DOM"}
+cities = {"Punta Cana":"DOM"}#"Santo Domingo":"DOM", "Santiago de los Caballeros":"DOM","Punta Cana":"DOM"}
 activitiesIDs = []
 for city in cities: 
 	r = requests.get(EXPEDIA.format(city))
@@ -41,7 +41,7 @@ for actId in activitiesIDs:
 	latLng = content["latLng"].split(',')
 
 	try:
-		location = checkAPILocation(latLng[0],latLng[1],content['address'],"DOM","Santo Domingo")
+		location = checkAPILocation(latLng[0],latLng[1],content['address'],"DOM","Punta Cana")
 		print location.lcity.cityname
 	except Exception as e:
 		continue

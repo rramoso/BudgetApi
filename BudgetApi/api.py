@@ -30,19 +30,19 @@ class OfferResource(ModelResource):
 
 		return result
 
-class DetailOfferResource(ModelResource):
+class ReserveResource(ModelResource):
 
 	class Meta:
 		queryset = Tblcity.objects.filter(cityname = 'Santo Domingo')
 		resource_name = 'detailoffer'
 		limit = 0
 		authorization= Authorization()
-		list_allowed_methods = ['get']
+		list_allowed_methods = ['post']
 
 	def dehydrate(self,bundle):
 
 		offerid = str(bundle.request.GET['offerid'])
 		
-		return 'ok'
+		return Tbloffer.objects.get(offerid=offerid).hotelname
 
 

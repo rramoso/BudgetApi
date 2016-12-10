@@ -16,11 +16,12 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 from tastypie.api import Api
-from BudgetApi.api import OfferResource
+from BudgetApi.api import OfferResource,ReserveResource
 
 offer_api = Api(api_name='offer')
 
 offer_api.register(OfferResource())
+offer_api.register(ReserveResource())
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

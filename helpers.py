@@ -124,11 +124,13 @@ def createOffersToUser(begin_time,end_time, budget, city, preferences,people):
 	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days,people)
 	for offer in selectedOffers:
 		offersItinerary[offer.offerid]['hotelExpense'] = {int(min(ast.literal_eval(offer.hotelexpense)))*number_of_days:ast.literal_eval(offer.hotelexpense)[min(ast.literal_eval(offer.hotelexpense))]}
-	
+		offersItinerary[offer.offerid]['totalCost'] = str(int(offersItinerary[offer.offerid]['hotelExpense'].keys()[0])+ offersItinerary[offer.offerid]['activityTotal'])
+		offersItinerary[offer.offerid]['destinationCity'] = offer.hotelcity
+		offersItinerary[offer.offerid]['activityTotal'] = str(offersItinerary[offer.offerid]['activityTotal'])
+
 	return offersItinerary
 	
 def createItinerary(hotelsActivity,begin_time,end_time,days,people):
-
 
 	google_places = []
 	result = {}
@@ -149,6 +151,7 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 				for date in dates:
 					d = date
 					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
+					print date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time
 					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
 						duration = int(act.acbegintime.split('h')[0]) if 'm' not in act.acbegintime.split('h')[0] else 1
 						
@@ -160,12 +163,13 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 										activityTotal += int(i[1])
 							for hour in range(duration):
 								itinerary[(date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S")] = act.acname
+								
 						break
 
 			else:
 				google_places.append(act)
-
-		result[offer] = {'itinerary':itinerary,'activityTotal':activityTotal,'hotel':offerObject.hotelname}
+		hotel =  Tblhotel.objects.filter(hotelid = offerObject.hotelid)[0]
+		result[offer] = {'itinerary':itinerary,'activityTotal':activityTotal,'hotel':offerObject.hotelname,'hotelAddress':hotel.hoteladdress.streetname}
 		
 	for place in google_places:
 		pass

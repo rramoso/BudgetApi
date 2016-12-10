@@ -1,7 +1,7 @@
 from helpers import *
 import sys, django, requests, json, datetime
 
-DAYS_LIMIT = 15
+DAYS_LIMIT = 90
 HOTEL_OFFER = "http://terminal2.expedia.com/x/mhotels/offers?hotelId={}&checkInDate={}&checkOutDate={}&room1=2&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 Tbloffer.objects.filter(startdate__lt=TODAY).delete()
