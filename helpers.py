@@ -139,20 +139,22 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 	for offer in hotelsActivity:
 		activityTotal = 0
 		itinerary = {}
-		itinerary[begin_time.strftime("%Y-%m-%d %H:%M:%S")],itinerary[end_time.strftime("%Y-%m-%d %H:%M:%S")] = 'Hotel Arrival', 'End of Offer'
+		# itinerary[begin_time.strftime("%Y-%m-%d %H:%M:%S")],itinerary[end_time.strftime("%Y-%m-%d %H:%M:%S")] = 'Hotel Arrival', 'End of Offer'
 		offerObject = Tbloffer.objects.get(offerid = offer)
+		addedDates = []
 		for activityid in hotelsActivity[offer]:
 
 			act = Tblactivity.objects.get(activityid = activityid)
-			
+			actPrice = 0 
 			if act.accost != None:
 				dates = ast.literal_eval(act.accost).keys()
 
 				for date in dates:
 					d = date
+					print activityid,date
 					date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
-					print date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time
-					if date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.values() and date > begin_time and date < end_time:
+					print date.strftime("%Y-%m-%d %H:%M:%S") not in itinerary and act.acname not in itinerary.keys() and date > begin_time and date < end_time
+					if date.strftime("%Y-%m-%d %H:%M:%S") not in addedDates and act.acname not in itinerary.keys() and date > begin_time and date < end_time:
 						duration = int(act.acbegintime.split('h')[0]) if 'm' not in act.acbegintime.split('h')[0] else 1
 						
 						if date+timedelta(hours=duration) < end_time:
@@ -161,9 +163,15 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 								for key in people.keys():
 									if key in i[0]:
 										activityTotal += int(i[1])
-							for hour in range(duration):
-								itinerary[(date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S")] = act.acname
-								
+										actPrice += int(i[1])
+							
+							if d.split(' ')[1].split(':')[0] == '00':
+								itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':"This activity happends all day and last:"+str(duration)+"h.   "+act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname,'start':'All day','end':'All day'}
+
+							else:
+								for hour in range(duration):
+									addedDates.append((date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S"))
+								itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname, 'start':date.strftime("%Y-%m-%d %H:%M:%S"),'end':(date+timedelta(hours=duration)).strftime("%Y-%m-%d %H:%M:%S")}
 						break
 
 			else:

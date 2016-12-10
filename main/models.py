@@ -219,6 +219,23 @@ class Tblpreference(models.Model):
 class Tblreservation(models.Model):
     reservationid = models.TextField(db_column='reservationID', primary_key=True)  # Field name made lowercase.
     reservationtype = models.TextField(db_column='reservationType', blank=True, null=True)  # Field name made lowercase.
+    hotelname = models.TextField(db_column='hotelname', blank=True, null=True)
+    hotelprice = models.TextField(db_column='hotelprice', blank=True, null=True)
+    hotelroomdescription = models.TextField(db_column='hotelroomdescription', blank=True, null=True)
+    hoteladdress = models.TextField(db_column='hoteladdress', blank=True, null=True)
+    actprice = models.TextField(db_column='actprice', blank=True, null=True)
+    actitinerary = models.TextField(db_column='actitinerary', blank=True, null=True)
+    transportationinfo = models.TextField(db_column='transportationinfo', blank=True, null=True)
+    origin = models.TextField(db_column='origin', blank=True, null=True)
+    destination = models.TextField(db_column='destination', blank=True, null=True)
+    user = models.TextField(db_column='user', blank=True, null=True)
+    startdate = models.TextField(db_column='startdate', blank=True, null=True)
+    enddate = models.TextField(db_column='enddate', blank=True, null=True)
+    preference = models.TextField(db_column='preference', blank=True, null=True)
+    rating = models.TextField(db_column='rating', blank=True, null=True)
+    budget = models.TextField(db_column='budget', blank=True, null=True)
+    adult = models.TextField(db_column='adult', blank=True, null=True)
+    children = models.TextField(db_column='children', blank=True, null=True)
 
     class Meta:
         
