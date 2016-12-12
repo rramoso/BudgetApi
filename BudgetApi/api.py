@@ -5,7 +5,7 @@ import time
 from tastypie import fields
 from main.models import *
 from helpers import *
-import urllib3
+import urllib3,ast,re
 
 class OfferResource(ModelResource):
      
@@ -36,12 +36,17 @@ class ReserveResource(ModelResource):
 		queryset = Tblreservation.objects.all()
 		resource_name = 'detailoffer'
 		authorization= Authorization()
-		list_allowed_methods = ['post']
+		list_allowed_methods = ['post','get']
 
-	def hydrate(self,bundle):
+	def dehydrate(self,bundle):
 
-		print bundle
-		
+		st = str(bundle.data["actitinerary"].encode('utf-8'))
+		st = re.sub("</p>"," ",st)
+		st = re.sub("<p>"," ",st)
+		st = re.sub("\n"," ",st)
+
+		print ast.literal_eval(st)
+		bundle.data["actitinerary"] = ast.literal_eval(st)
 		return bundle
 
 

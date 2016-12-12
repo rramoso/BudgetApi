@@ -10,7 +10,7 @@ from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyBtj4q8RrfxwVZoQQ1iBeaJ4U7XBrEWkEk"
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyCjyC9lqcI2pMjpygoFjPqH6TjcZTTWH9o"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
