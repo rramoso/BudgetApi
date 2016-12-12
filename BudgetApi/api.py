@@ -25,8 +25,11 @@ class OfferResource(ModelResource):
 		budget = int(bundle.request.GET['limit'])
 		city = bundle.request.GET['city']
 		preferences = re.split('[\[,\,,\',\]]',bundle.request.GET['preferences'])
+		adult = str(bundle.request.GET['adult'])
+		child = str(bundle.request.GET['child'])
+		fromCity = str(bundle.request.GET['from'])
 		while '' in preferences: preferences.remove('')
-		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,Tblcity.objects.get(cityname = city),preferences,{"Adult":1})
+		result = createOffersToUser(datetime.datetime.strptime(begintime,"%Y-%m-%d %H:%M:%S"), datetime.datetime.strptime(endtime,"%Y-%m-%d %H:%M:%S"),budget,fromCity,Tblcity.objects.get(cityname = city),preferences,{"Adult":int(adult),"Child":int(child)})
 
 		return result
 

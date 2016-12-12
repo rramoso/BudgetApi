@@ -10,7 +10,7 @@ from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyCjyC9lqcI2pMjpygoFjPqH6TjcZTTWH9o"
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyD2HMKGPLyqS8VVM-rivWOwhLeI-JJJBwg"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
@@ -88,12 +88,13 @@ def intPrices(budget,hotelexpense,days):
 		return {}
 	
 
-def createOffersToUser(begin_time,end_time, budget, city, preferences,people):
+def createOffersToUser(begin_time,end_time, budget,fromCity, city, preferences,people):
 		
 	hotel_money_limit = budget*0.5
-	activities_money = budget*0.125
-	restaurant_money = budget*0.25	 
-	
+	activities_money = budget*0.25
+	flight_money = budget*0.25	 
+	destinationCity = city
+	originCity = Tblcity.objects.get(cityname=fromCity)
 	selectedOffers = []
 	selectedActivities = []
 	hotelsActivity = {}
@@ -120,17 +121,21 @@ def createOffersToUser(begin_time,end_time, budget, city, preferences,people):
 	for offer in selectedOffers:
 		hotelsActivity[offer.offerid] = activitiesByHotel(offer.hotelid,selectedActivities)
 
-	# #Creating itinerary
-	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days,people)
+	# #Creating itinerary/
+	offersItinerary = createItinerary(hotelsActivity,begin_time,end_time,number_of_days,people,activities_money)
 	for offer in selectedOffers:
 		offersItinerary[offer.offerid]['hotelExpense'] = {int(min(ast.literal_eval(offer.hotelexpense)))*number_of_days:ast.literal_eval(offer.hotelexpense)[min(ast.literal_eval(offer.hotelexpense))]}
 		offersItinerary[offer.offerid]['totalCost'] = str(int(offersItinerary[offer.offerid]['hotelExpense'].keys()[0])+ offersItinerary[offer.offerid]['activityTotal'])
 		offersItinerary[offer.offerid]['destinationCity'] = offer.hotelcity
 		offersItinerary[offer.offerid]['activityTotal'] = str(offersItinerary[offer.offerid]['activityTotal'])
+		if destinationCity.countryid.countrycode == originCity.countryid.countrycode:
+			offersItinerary[offer.offerid]['transportationinfo'] = "There are no flights available from your origin to your destination."
+		else:
+			offersItinerary[offer.offerid]['transportationinfo'] ="There are no flights available from your origin to your destination."
 
 	return offersItinerary
 	
-def createItinerary(hotelsActivity,begin_time,end_time,days,people):
+def createItinerary(hotelsActivity,begin_time,end_time,days,people,price_limit):
 
 	google_places = []
 	result = {}
@@ -161,9 +166,13 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 							for c in ast.literal_eval(act.accost)[d].split(','):
 								i = c.split('$')
 								for key in people.keys():
+									print key,people[key],i[0]
 									if key in i[0]:
-										activityTotal += int(i[1])
-										actPrice += int(i[1])
+										print "$#",activityTotal+people[key]*int(i[1]), price_limit,(activityTotal +people[key]*int(i[1])) <= price_limit
+										if (activityTotal + people[key]*int(i[1])) <= price_limit:
+											activityTotal += people[key]*int(i[1])
+											print 'activityTotal',activityTotal
+											actPrice += int(i[1])
 							
 							if d.split(' ')[1].split(':')[0] == '00':
 								itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':"This activity happends all day and last:"+str(duration)+"h.   "+act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname,'start':'All day','end':'All day'}
@@ -229,8 +238,7 @@ def createOfferByActivities(activities):
 	for activity in activities:
 		
 		costs = ast.literal_eval(activity.accost)
-		for date in costs:
-			print lol[i].split(',')
+
 
 
 def createRestaurant(location,restaurant):
