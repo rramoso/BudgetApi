@@ -36,9 +36,11 @@ class OfferResource(ModelResource):
 class ReserveResource(ModelResource):
 
 	class Meta:
+		
 		queryset = Tblreservation.objects.all()
 		resource_name = 'detailoffer'
 		authorization= Authorization()
+		filtering = {"user":ALL}
 		list_allowed_methods = ['post','get']
 
 	def dehydrate(self,bundle):

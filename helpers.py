@@ -10,7 +10,7 @@ from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyD2HMKGPLyqS8VVM-rivWOwhLeI-JJJBwg"
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyA1WgEIANvMqbr7twhyG9oWjjVMrFMc1TM"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
@@ -167,20 +167,18 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people,price_limit):
 								i = c.split('$')
 								for key in people.keys():
 									print key,people[key],i[0]
-									if key in i[0]:
-										print "$#",activityTotal+people[key]*int(i[1]), price_limit,(activityTotal +people[key]*int(i[1])) <= price_limit
-										if (activityTotal + people[key]*int(i[1])) <= price_limit:
-											activityTotal += people[key]*int(i[1])
-											print 'activityTotal',activityTotal
-											actPrice += int(i[1])
+									if key in i[0] and people[key] > 0 and activityTotal+people[key]*int(i[1]) <= price_limit:
+										activityTotal += people[key]*int(i[1])
+										print 'activityTotal',activityTotal
+										actPrice += int(i[1])	
 							
-							if d.split(' ')[1].split(':')[0] == '00':
-								itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':"This activity happends all day and last:"+str(duration)+"h.   "+act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname,'start':'All day','end':'All day'}
+										if d.split(' ')[1].split(':')[0] == '00':
+											itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':"This activity happends all day and last:"+str(duration)+"h.   "+act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname,'start':'All day','end':'All day'}
 
-							else:
-								for hour in range(duration):
-									addedDates.append((date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S"))
-								itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname, 'start':date.strftime("%Y-%m-%d %H:%M:%S"),'end':(date+timedelta(hours=duration)).strftime("%Y-%m-%d %H:%M:%S")}
+										else:
+											for hour in range(duration):
+												addedDates.append((date+timedelta(hours=hour)).strftime("%Y-%m-%d %H:%M:%S"))
+											itinerary[act.acname] = {'date':date.strftime("%Y-%m-%d"),'actDescription':act.acdescription,'actPrice':str(actPrice),'actLocation':act.aclocation.streetname, 'start':date.strftime("%Y-%m-%d %H:%M:%S"),'end':(date+timedelta(hours=duration)).strftime("%Y-%m-%d %H:%M:%S")}
 						break
 
 			else:
