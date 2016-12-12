@@ -1,14 +1,16 @@
 from helpers import *
 import sys, django, requests, json, datetime
 
-DAYS_LIMIT = 90
+DAYS_LIMIT = 30
 HOTEL_OFFER = "http://terminal2.expedia.com/x/mhotels/offers?hotelId={}&checkInDate={}&checkOutDate={}&room1=2&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 Tbloffer.objects.filter(startdate__lt=TODAY).delete()
 print "today", datetime.datetime.now()
 
-cities = {"Santo Domingo":"DOM","Santiago De Los Caballeros":"DOM","Punta Cana":"DOM"}
-
+cities = {}
+all_cities = Tblcity.objects.all()
+for i in all_cities:
+	cities[i.cityname] = i.countryid.countrycode
 
 for city in cities:
 		

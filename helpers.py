@@ -10,7 +10,7 @@ from main.models import *
 
 UNAVAILABLE = "No disponible"
 COUNTRY_BY_CODE = "https://restcountries.eu/rest/v1/alpha?codes={}"
-DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyCjyC9lqcI2pMjpygoFjPqH6TjcZTTWH9o"
+DISTANCE_BY_LATLNG = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&mode={}&language=en-EN&key=AIzaSyBtj4q8RrfxwVZoQQ1iBeaJ4U7XBrEWkEk"
 		
 def checkAPILocation(lat,log,address,country,city):
 	
@@ -183,7 +183,8 @@ def createItinerary(hotelsActivity,begin_time,end_time,days,people):
 		pass
 
 	return result
-
+def searchFlights(origin,destination,departureDate,returnDate):
+	pass
 def activitiesByPrice(selectedActivities,price_limit,people):
 	
 	activitiesSelected = []

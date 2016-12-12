@@ -8,7 +8,7 @@ import json
 
 EXPEDIA = "http://terminal2.expedia.com/x/mhotels/search?city={}&checkInDate=2016-08-16&checkOutDate=2016-08-19&room1=2&apikey=3oFyYOgQptyxEzCRjV81Bhzy0FR7pb6d"
 GOOGLE_PLACES_KEY = ""
-cities = ["PUJ","STI","SDQ","SFO"]
+cities = ["PUJ","STI","SDQ","SFO","CDMX"]
 
 
 hotelList = []
